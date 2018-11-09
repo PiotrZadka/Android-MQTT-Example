@@ -20,12 +20,11 @@ public class MainActivity extends AppCompatActivity {
 
     String userid = "14056838";  // Alter this to your student id
     //We have to generate a unique Client id.
-    String clientId = userid + "-sub";
+    String clientId = userid + "-sub2";
 
     // Default sensor to listen for -
     // Change to another if you are broadcasting a different sensor name
     String sensorname = "doorState";
-
     String topicname = userid + "/" + sensorname;
 
     private MqttClient mqttClient;
@@ -47,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void messageArrived(String topic, final MqttMessage message) throws Exception {
+                public void messageArrived(String topic, final MqttMessage message) {
                     System.out.println("DEBUG: Message arrived. Topic: " + topic + "  Message: " + message.toString());
                     // get message data
                     System.out.println(message);
@@ -97,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void startSubscribing() {
         try {
-            mqttClient.connect();
 
+            mqttClient.connect();
             //Subscribe to all subtopics of home
             final String topic = topicname;
             mqttClient.subscribe(topic);
