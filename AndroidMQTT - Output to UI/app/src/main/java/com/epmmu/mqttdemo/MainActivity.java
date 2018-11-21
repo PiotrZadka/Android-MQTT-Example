@@ -1,12 +1,18 @@
 package com.epmmu.mqttdemo;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
 import android.os.StrictMode;
+import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.CompoundButton;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -20,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String BROKER_URL = "tcp://iot.eclipse.org:1883";
     //public static final String BROKER_URL = "tcp://broker.mqttdashboard.com:1883";
+
+    private final String CHANNEL_ID = "personal_notification";
 
 
     String userid = "14056838";  // Alter this to your student id
@@ -55,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         // start new
         // Create MQTT client and start subscribing to message queue
         try {
@@ -79,9 +86,11 @@ public class MainActivity extends AppCompatActivity {
                             // Update UI elements
                             if(messageStr.equals("open")){
                                 mainSwitch.setChecked(true);
+                                openNotification(true);
                             }
                             else{
                                 mainSwitch.setChecked(false);
+                                openNotification(false);
                             }
                         }
                     });
@@ -110,8 +119,6 @@ public class MainActivity extends AppCompatActivity {
         StrictMode.setThreadPolicy(policy);
 
         startSubscribing();
-
-
     }
 
 
@@ -145,7 +152,40 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void openNotification(Boolean DoorState) {
+        // Build notification
+        NotificationManager mNotificationManager;
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(getBaseContext().getApplicationContext(), "notify_001");
+        Intent ii = new Intent(getBaseContext().getApplicationContext(), MainActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, ii, 0);
 
 
+        mBuilder.setContentIntent(pendingIntent);
+        mBuilder.setSmallIcon(R.mipmap.ic_launcher_round);
+        mBuilder.setContentTitle("Access Granted");
+        if(DoorState){
+            mBuilder.setContentText("Front door opened using card <card id>");
+        }else{
+            mBuilder.setContentText("Front door closed using card <card id>");
+        }
+        mBuilder.setPriority(Notification.PRIORITY_MAX);
+
+        mNotificationManager =
+                (NotificationManager) getBaseContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = "YOUR_CHANNEL_ID";
+            NotificationChannel channel = new NotificationChannel(channelId,
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            mNotificationManager.createNotificationChannel(channel);
+            mBuilder.setChannelId(channelId);
+        }
+
+        mNotificationManager.notify(0, mBuilder.build());
+
+    }
 
 }

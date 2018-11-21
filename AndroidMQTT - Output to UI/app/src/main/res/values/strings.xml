@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Smart Door Lock</string>
+    <string name="notifyButton">Notify</string>
 </resources>
