@@ -60,7 +60,13 @@ public class MainActivity extends AppCompatActivity {
                 final cardReaderData cardReader = new cardReaderData("unknown","unknown","unknown");
                 //Controls for switch button in app when using manually.
                 if(mainSwitch.isChecked()){
-                    // Publish message
+
+                    // Publish message to door lock mechanism switching on
+                    // Hardcoded because each switch might be tied to different card and different mechanism
+                    // This specific switch/mechanism combo is also broadcasted over mqtt from RFID reader but it's sent as JSON
+                    // Android would need to know before hand what is the name of the card by some kind of sync before use to let know what card is opening which door lock
+                    // Perhaps NFC sync?
+
                     cardReader.setDoorState("open");
                     cardReader.setTagId("card");
                     String cardReaderJson = gson.toJson(cardReader);
@@ -68,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Main Door Open", Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    // Publish message
+                    // Same as above but for switching off.
                     cardReader.setDoorState("close");
                     cardReader.setTagId("card");
                     String cardReaderJson = gson.toJson(cardReader);
@@ -78,10 +84,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // start new
         // Create MQTT client and start subscribing to message queue
         try {
-            // change from original. Messages in "null" are not stored
+            // Change from original.
+            // Messages in "null" are not stored
             mqttClient = new MqttClient(BROKER_URL, clientId, null);
             mqttClient.setCallback(new MqttCallbackExtended() {
                 @Override
@@ -91,23 +97,34 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void messageArrived(String topic, final MqttMessage message) {
+
+                    // Checking what message arrived for DEBUG purposes
                     System.out.println("DEBUG: Message arrived. Topic: " + topic + "  Message: " + message.toString());
                     final cardReaderData messageJson = gson.fromJson(message.toString(), cardReaderData.class);
                     runOnUiThread(new Runnable() {
                         public void run() {
                             System.out.println("Updating UI");
-                            // Update UI elements
+
+                            // Update UI elements when receiving message from MQTT.
+                            // This are not controls for manual switch button.
+                            // For manual controls check above.
+                            // Statement is hardcoded for specific card. Same as above this could use some kind of NFC sync to establish card name at the beginning to tie up both door lock and card
+
+                            // If card is recognised, open the door and send notification
                             if(messageJson.getTagId().equals("card") && messageJson.getDoorState().equals("open")){
                                 mainSwitch.setChecked(true);
                                 openNotification(true, messageJson);
                             }
+                            // If card is recognised, close the door and send notification
                             else if(messageJson.getTagId().equals("card") && messageJson.getDoorState().equals("close")){
                                 mainSwitch.setChecked(false);
                                 openNotification(false, messageJson);
                             }
+                            // if card is not recognised (someone is trying to get access), close door and send notification about false attempt being made.
                             else{
                                 mainSwitch.setChecked(false);
                                 openNotification(false, messageJson);
+                                // Perhaps add notification to DB about false attempt
                             }
                         }
                     });
@@ -134,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
         // temp use of ThreadPolicy until use AsyncTask
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
-
         startSubscribing();
     }
 
@@ -155,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Publish message to doorlock (servo motor)
     private void publishSwitchState(String switchState) {
         try {
             final MqttTopic switchStateTopic = mqttClient.getTopic(SWITCH_STATE);
@@ -169,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Notification builder
     public void openNotification(Boolean DoorState, cardReaderData cardName) {
         // Build notification
         NotificationManager mNotificationManager;
@@ -177,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
         Intent ii = new Intent(getBaseContext().getApplicationContext(), MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, ii, 0);
 
-
+        // Set notification settings like icon/title/content
         mBuilder.setContentIntent(pendingIntent);
         mBuilder.setSmallIcon(R.mipmap.ic_launcher_round);
         mBuilder.setContentTitle("Access Granted");
@@ -204,9 +222,6 @@ public class MainActivity extends AppCompatActivity {
             mNotificationManager.createNotificationChannel(channel);
             mBuilder.setChannelId(channelId);
         }
-
         mNotificationManager.notify(0, mBuilder.build());
-
     }
-
 }
