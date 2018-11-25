@@ -57,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         mainSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Card reader class 
+                //Card reader class
                 final cardReaderData cardReader = new cardReaderData("unknown","unknown","unknown");
                 //Controls for switch button in app when using manually.
                 if(mainSwitch.isChecked()){
