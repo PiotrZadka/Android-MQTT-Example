@@ -26,18 +26,21 @@ import org.eclipse.paho.client.mqttv3.MqttTopic;
 
 public class MainActivity extends AppCompatActivity {
 
+    //MQTT brokers
     public static final String BROKER_URL = "tcp://iot.eclipse.org:1883";
     //public static final String BROKER_URL = "tcp://broker.mqttdashboard.com:1883";
 
+    //Unique Channel for Notifications
     private final String CHANNEL_ID = "personal_notification";
     Gson gson = new Gson();
 
-    String userid = "14056838";  // Alter this to your student id
+    // Alter this to your student id
+    String userid = "14056838";
+
     //We have to generate a unique Client id.
     String clientId = userid + "-sub2";
 
-    // Default sensor to listen for -
-    // Change to another if you are broadcasting a different sensor name
+    // Name of topic that is being broadcasted through mqtt
     String sensorname = "doorState";
     String topicname = userid + "/" + sensorname;
 
@@ -54,12 +57,22 @@ public class MainActivity extends AppCompatActivity {
         mainSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                final cardReaderData cardReader = new cardReaderData("unknown","unknown","unknown");
+                //Controls for switch button in app when using manually.
                 if(mainSwitch.isChecked()){
-                    publishSwitchState("open");
+                    // Publish message
+                    cardReader.setDoorState("open");
+                    cardReader.setTagId("card");
+                    String cardReaderJson = gson.toJson(cardReader);
+                    publishSwitchState(cardReaderJson);
                     Toast.makeText(MainActivity.this, "Main Door Open", Toast.LENGTH_SHORT).show();
                 }
                 else{
-                    publishSwitchState("close");
+                    // Publish message
+                    cardReader.setDoorState("close");
+                    cardReader.setTagId("card");
+                    String cardReaderJson = gson.toJson(cardReader);
+                    publishSwitchState(cardReaderJson);
                     Toast.makeText(MainActivity.this, "Main Door Closed", Toast.LENGTH_SHORT).show();
                 }
             }
