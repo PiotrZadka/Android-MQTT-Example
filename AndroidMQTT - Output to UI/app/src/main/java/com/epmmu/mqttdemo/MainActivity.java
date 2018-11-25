@@ -15,6 +15,8 @@ import android.view.View;
 import android.widget.Switch;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -28,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     //public static final String BROKER_URL = "tcp://broker.mqttdashboard.com:1883";
 
     private final String CHANNEL_ID = "personal_notification";
-
+    Gson gson = new Gson();
 
     String userid = "14056838";  // Alter this to your student id
     //We have to generate a unique Client id.
@@ -77,20 +79,22 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void messageArrived(String topic, final MqttMessage message) {
                     System.out.println("DEBUG: Message arrived. Topic: " + topic + "  Message: " + message.toString());
-                    // get message data
-                    System.out.println(message);
-                    final String messageStr = message.toString();
+                    final cardReaderData messageJson = gson.fromJson(message.toString(), cardReaderData.class);
                     runOnUiThread(new Runnable() {
                         public void run() {
                             System.out.println("Updating UI");
                             // Update UI elements
-                            if(messageStr.equals("open")){
+                            if(messageJson.getTagId().equals("card") && messageJson.getDoorState().equals("open")){
                                 mainSwitch.setChecked(true);
-                                openNotification(true);
+                                openNotification(true, messageJson);
+                            }
+                            else if(messageJson.getTagId().equals("card") && messageJson.getDoorState().equals("close")){
+                                mainSwitch.setChecked(false);
+                                openNotification(false, messageJson);
                             }
                             else{
                                 mainSwitch.setChecked(false);
-                                openNotification(false);
+                                openNotification(false, messageJson);
                             }
                         }
                     });
@@ -152,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void openNotification(Boolean DoorState) {
+    public void openNotification(Boolean DoorState, cardReaderData cardName) {
         // Build notification
         NotificationManager mNotificationManager;
         NotificationCompat.Builder mBuilder =
@@ -164,10 +168,14 @@ public class MainActivity extends AppCompatActivity {
         mBuilder.setContentIntent(pendingIntent);
         mBuilder.setSmallIcon(R.mipmap.ic_launcher_round);
         mBuilder.setContentTitle("Access Granted");
-        if(DoorState){
-            mBuilder.setContentText("Front door opened using card <card id>");
-        }else{
-            mBuilder.setContentText("Front door closed using card <card id>");
+        if(DoorState && cardName.getTagId().equals("card")){
+            mBuilder.setContentText("Front door opened using card name => "+cardName.getTagId()+" <=");
+        }else if(!DoorState && cardName.getTagId().equals("card")){
+            mBuilder.setContentText("Front door closed using card name => "+cardName.getTagId()+" <=");
+        }
+        else{
+            mBuilder.setContentTitle("Access Denied");
+            mBuilder.setContentText("Someone tried to open door using card name => "+cardName.getTagId()+" <=");
         }
         mBuilder.setPriority(Notification.PRIORITY_MAX);
 
