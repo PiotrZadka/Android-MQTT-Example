@@ -5,10 +5,12 @@
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 
+
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@drawable/background"
+    android:orientation="vertical">
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -19,9 +21,9 @@
     -->
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="horizontal"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"><![CDATA[
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"><![CDATA[
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
@@ -29,13 +31,60 @@
 
         ]]></LinearLayout>
 
-    <Switch
-        android:id="@+id/mainSwitch"
+    <TextView
+        android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textAlignment="center"
+        android:text="Your Smart Locks"
+        android:textColor="@color/colorPrimaryDark"
+        android:textSize="18sp" />
+
+    <Switch
+        android:id="@+id/mainSwitch"
+        android:layout_width="370dp"
+        android:layout_height="70dp"
+        android:layout_gravity="center"
+        android:layout_margin="10dp"
+        android:background="@drawable/frontdoor"
         android:checked="false"
         android:showText="true"
         android:text="Main Doors"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimaryDark"
+        android:textOff="Closed"
+        android:textOn="Open"
+        tools:checked="false" />
+
+    <Switch
+        android:id="@+id/mainSwitch4"
+        android:layout_width="370dp"
+        android:layout_height="70dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/kitchen"
+        android:checked="false"
+        android:shadowColor="@color/colorPrimaryDark"
+        android:showText="true"
+        android:text="Kitchen"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimaryDark"
+        android:textOff="Closed"
+        android:textOn="Open"
+        tools:checked="false" />
+
+    <Switch
+        android:id="@+id/mainSwitch5"
+        android:layout_width="370dp"
+        android:layout_height="70dp"
+        android:layout_gravity="center"
+        android:background="@drawable/livingroom"
+        android:checked="false"
+        android:showText="true"
+        android:text="Backyard"
+        android:textAlignment="center"
+        android:textColor="@color/colorPrimaryDark"
         android:textOff="Closed"
         android:textOn="Open"
         tools:checked="false" />
