@@ -24,6 +24,13 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.MqttTopic;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+
 public class MainActivity extends AppCompatActivity {
 
     //MQTT brokers
@@ -58,29 +65,39 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //Card reader class
-                final cardReaderData cardReader = new cardReaderData("unknown","unknown","unknown");
+                final cardReaderData cardReader = new cardReaderData("unknown","unknown","unknown", "unknown");
+
                 //Controls for switch button in app when using manually.
                 if(mainSwitch.isChecked()){
-
-                    // Publish message to door lock mechanism switching on
-                    // Hardcoded because each switch might be tied to different card and different mechanism
-                    // This specific switch/mechanism combo is also broadcasted over mqtt from RFID reader but it's sent as JSON
-                    // Android would need to know before hand what is the name of the card by some kind of sync before use to let know what card is opening which door lock
-                    // Perhaps NFC sync?
-
-                    cardReader.setDoorState("open");
+                    // Hardcoded card name
                     cardReader.setTagId("card");
-                    String cardReaderJson = gson.toJson(cardReader);
-                    publishSwitchState(cardReaderJson);
-                    Toast.makeText(MainActivity.this, "Main Door Open", Toast.LENGTH_SHORT).show();
+                    //Validate card
+                    cardReaderData validationResult = (validateCard(cardReader));
+                    if(validationResult.getMotorId()!= null){
+                        validationResult.setDoorState("open");
+                        String cardReaderJson = gson.toJson(validationResult);
+                        publishSwitchState(cardReaderJson);
+                        Toast.makeText(MainActivity.this, "DoorID '"+validationResult.getMotorId()+"' Opened", Toast.LENGTH_SHORT).show();
+                    }
+                    else{
+                        Toast.makeText(MainActivity.this, "Access for tag id "+validationResult.getTagId()+" is DISABLED", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 else{
-                    // Same as above but for switching off.
-                    cardReader.setDoorState("close");
+                    // Hardcoded card name
                     cardReader.setTagId("card");
-                    String cardReaderJson = gson.toJson(cardReader);
-                    publishSwitchState(cardReaderJson);
-                    Toast.makeText(MainActivity.this, "Main Door Closed", Toast.LENGTH_SHORT).show();
+                    // Same as above but for switching off.
+                    //Validate card
+                    cardReaderData validationResult = (validateCard(cardReader));
+                    if(validationResult.getMotorId()!= null){
+                        validationResult.setDoorState("close");
+                        String cardReaderJson = gson.toJson(validationResult);
+                        publishSwitchState(cardReaderJson);
+                        Toast.makeText(MainActivity.this, "DoorID '"+validationResult.getMotorId()+"' Closed", Toast.LENGTH_SHORT).show();
+                    }
+                    else{
+                        Toast.makeText(MainActivity.this, "Access for tag id '"+validationResult.getTagId()+"' is DISABLED", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
         });
@@ -224,5 +241,41 @@ public class MainActivity extends AppCompatActivity {
             mBuilder.setChannelId(channelId);
         }
         mNotificationManager.notify(0, mBuilder.build());
+    }
+
+    public cardReaderData validateCard(cardReaderData data) {
+
+        //I have been using my own device over wifi and my local host was 192.168.0.11
+        //If this is going to be run on virtual device in Android studio change address to 10.0.2.2
+        String sensorServerURL = "http://192.168.0.11:8080/AssignmentServer/CardValidator";
+        URL url;
+        HttpURLConnection conn;
+        BufferedReader rd;
+        String dataToJson = gson.toJson(data);
+        try {
+            dataToJson = URLEncoder.encode(dataToJson, "UTF-8");
+        } catch (UnsupportedEncodingException e1) {
+            e1.printStackTrace();
+        }
+
+        String fullURL = sensorServerURL + "?validationData="+dataToJson;
+        System.out.println("Sending data to: "+fullURL);  // DEBUG confirmation message
+        String line;
+        String result = "";
+        try {
+            url = new URL(fullURL);
+            conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            // Request response from server to enable URL to be opened
+            while ((line = rd.readLine()) != null) {
+                result += line;
+            }
+            rd.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        cardReaderData resultData = gson.fromJson(result, cardReaderData.class);
+        return resultData;
     }
 }

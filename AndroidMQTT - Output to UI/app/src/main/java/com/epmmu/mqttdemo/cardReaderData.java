@@ -2,13 +2,16 @@ package com.epmmu.mqttdemo;
 
 public class cardReaderData {
     String tagId;
-    String decideID;
+    String readerId;
+    String motorId;
     String doorState;
 
-    cardReaderData(String tagId, String decideID, String doorState){
+    cardReaderData(String tagId, String readerId, String motorId, String doorState){
         this.tagId = tagId;
-        this.decideID = decideID;
+        this.readerId = readerId;
+        this.motorId = motorId;
         this.doorState = doorState;
+
     }
 
     public String getTagId() {
@@ -20,11 +23,11 @@ public class cardReaderData {
     }
 
     public String getReaderId() {
-        return decideID;
+        return readerId;
     }
 
-    public void setReaderId(String deviceID) {
-        this.decideID = deviceID;
+    public void setReaderId(String readerId) {
+        this.readerId = readerId;
     }
 
     public String getDoorState() {
@@ -33,5 +36,13 @@ public class cardReaderData {
 
     public void setDoorState(String doorState) {
         this.doorState = doorState;
+    }
+
+    public String getMotorId() {
+        return motorId;
+    }
+
+    public void setMotorId(String motorId) {
+        this.motorId = motorId;
     }
 }
