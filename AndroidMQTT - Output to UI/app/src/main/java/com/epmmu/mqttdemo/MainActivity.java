@@ -123,11 +123,6 @@ public class MainActivity extends AppCompatActivity {
                         public void run() {
                             System.out.println("Updating UI");
 
-                            // Update UI elements when receiving message from MQTT.
-                            // This are not controls for manual switch button.
-                            // For manual controls check above.
-                            // Statement is hardcoded for specific card. Same as above this could use some kind of NFC sync to establish card name at the beginning to tie up both door lock and card
-
                             // If card is recognised, open the door and send notification
                             if(messageJson.getTagId().equals("card") && messageJson.getDoorState().equals("open")){
                                 mainSwitch.setChecked(true);
@@ -138,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
                                 mainSwitch.setChecked(false);
                                 openNotification(false, messageJson);
                             }
-                            // if card is not recognised (someone is trying to get access), close door and send notification about false attempt being made.
+                            // if card is not recognised (someone is trying to get access),
+                            // close door and send notification about false attempt being made.
                             else{
                                 mainSwitch.setChecked(false);
                                 openNotification(false, messageJson);
@@ -247,7 +243,7 @@ public class MainActivity extends AppCompatActivity {
 
         //I have been using my own device over wifi and my local host was 192.168.0.11
         //If this is going to be run on virtual device in Android studio change address to 10.0.2.2
-        String sensorServerURL = "http://192.168.0.11:8080/AssignmentServer/CardValidator";
+        String sensorServerURL = "http://10.0.2.2:8080/AssignmentServer/CardValidator";
         URL url;
         HttpURLConnection conn;
         BufferedReader rd;
